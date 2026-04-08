@@ -18,6 +18,9 @@ jobs:
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
 
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
       - name: Restore dependencies
         run: dotnet restore
 
@@ -32,8 +35,7 @@ jobs:
             /o:"$SONAR_ORG" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.token="$SONAR_TOKEN" \
-            /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.cobertura.xml" \
-            /d:sonar.exclusions="**/bin/**,**/obj/**"
+            /d:sonar.cs.opencover.reportsPaths="coverage-report/OpenCover.xml"
 
       - name: Build
         run: dotnet build --no-incremental
@@ -41,9 +43,15 @@ jobs:
       - name: Run tests with coverage
         run: |
           dotnet test \
-            /p:CollectCoverage=true \
-            /p:CoverletOutputFormat=cobertura \
-            /p:CoverletOutput=TestResults/
+            --collect:"XPlat Code Coverage" \
+            --results-directory TestResults/
+
+      - name: Convert to OpenCover
+        run: |
+          reportgenerator \
+            -reports:"**/TestResults/**/coverage.cobertura.xml" \
+            -targetdir:"coverage-report" \
+            -reporttypes:OpenCover
 
       - name: End SonarCloud analysis
         env:
