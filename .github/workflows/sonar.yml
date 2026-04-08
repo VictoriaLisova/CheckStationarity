@@ -33,6 +33,7 @@ jobs:
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.cs.opencover.reportsPaths="coverage-report/coverage.opencover.xml" \
             /d:sonar.scanner.scanAll=false \
+            /d:sonar.inclusions=**/*.cs
             /d:sonar.exclusions="**/bin/**,**/obj/**,**/node_modules/**"
 
       - name: Restore dependencies
