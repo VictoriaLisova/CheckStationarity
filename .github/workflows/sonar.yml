@@ -35,7 +35,7 @@ jobs:
             /o:"$SONAR_ORG" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.token="$SONAR_TOKEN" \
-            /d:sonar.cs.opencover.reportsPaths="coverage/cobertura.xml" \
+            /d:sonar.cs.opencover.reportsPaths="**/coverage/cobertura.xml" \
             /d:sonar.scanner.scanAll=false \
             /d:sonar.inclusions=**/*.cs \
             /d:sonar.exclusions="**/bin/**,**/obj/**,**/node_modules/**"
