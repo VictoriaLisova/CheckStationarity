@@ -21,23 +21,18 @@ jobs:
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
 
-      - name: Install ReportGenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
-
       - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-          SONAR_ORG: ${{ secrets.SONAR_ORG }}
         run: |
           dotnet sonarscanner begin \
-            /k:"$SONAR_PROJECT_KEY" \
-            /o:"$SONAR_ORG" \
+            /k:"${{ secrets.SONAR_PROJECT_KEY }}" \
+            /o:"${{ secrets.SONAR_ORG }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.token="$SONAR_TOKEN" \
-            /d:sonar.cs.opencover.reportsPaths="coverage/coverage.opencover.xml" \
+            /d:sonar.cs.cobertura.reportsPaths="**/coverage.cobertura.xml" \
             /d:sonar.scanner.scanAll=false \
-            /d:sonar.inclusions=**/*.cs \
+            /d:sonar.inclusions="**/*.cs" \
             /d:sonar.exclusions="**/bin/**,**/obj/**,**/node_modules/**"
 
       - name: Restore dependencies
@@ -50,17 +45,11 @@ jobs:
         run: |
           dotnet test --no-build \
             /p:CollectCoverage=true \
-            /p:CoverletOutputFormat=opencover \
-            /p:CoverletOutput=coverage/
-
-      - name: Convert coverage to opencover
-        run: |
-          reportgenerator \
-            -reports:TestResults/**/coverage.cobertura.xml \
-            -targetdir:coverage-report \
-            -reporttypes:OpenCover
+            /p:CoverletOutputFormat=cobertura \
+            /p:CoverletOutput=TestResults/
 
       - name: End SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
+        run: |
+          dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
