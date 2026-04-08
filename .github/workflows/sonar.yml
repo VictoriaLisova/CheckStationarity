@@ -1,15 +1,12 @@
 name: SonarCloud Analysis
-
 on:
   push:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -21,30 +18,8 @@ jobs:
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
 
-      - name: Install ReportGenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
-
-      # - name: Begin SonarCloud analysis
-      #   env:
-      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      #     SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-      #     SONAR_ORG: ${{ secrets.SONAR_ORG }}
-      #   run: |
-      #     dotnet sonarscanner begin \
-      #       /k:"$SONAR_PROJECT_KEY" \
-      #       /o:"$SONAR_ORG" \
-      #       /d:sonar.host.url="https://sonarcloud.io" \
-      #       /d:sonar.token="$SONAR_TOKEN" \
-      #       /d:sonar.cs.opencover.reportsPaths="**/coverage/cobertura.xml" \
-      #       /d:sonar.scanner.scanAll=false \
-      #       /d:sonar.inclusions=**/*.cs \
-      #       /d:sonar.exclusions="**/bin/**,**/obj/**,**/node_modules/**"
-      - name: Run tests with coverage
-        run: |
-          dotnet test --no-build \
-            /p:CollectCoverage=true \
-            /p:CoverletOutputFormat=cobertura \
-            /p:CoverletOutput=TestResults/
+      - name: Restore dependencies
+        run: dotnet restore
 
       - name: Begin SonarCloud analysis
         env:
@@ -56,21 +31,19 @@ jobs:
             /k:"$SONAR_PROJECT_KEY" \
             /o:"$SONAR_ORG" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.login="$SONAR_TOKEN" \
-            /d:sonar.cs.opencover.reportsPaths="TestResults/**/coverage.cobertura.xml"
-      
-            - name: Restore dependencies
-              run: dotnet restore
+            /d:sonar.token="$SONAR_TOKEN" \
+            /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.cobertura.xml" \
+            /d:sonar.exclusions="**/bin/**,**/obj/**"
 
       - name: Build
         run: dotnet build --no-incremental
 
-      # - name: Convert coverage to opencover
-      #   run: |
-      #     reportgenerator \
-      #       -reports:TestResults/**/coverage.cobertura.xml \
-      #       -targetdir:coverage-report \
-      #       -reporttypes:OpenCover
+      - name: Run tests with coverage
+        run: |
+          dotnet test \
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat=cobertura \
+            /p:CoverletOutput=TestResults/
 
       - name: End SonarCloud analysis
         env:
