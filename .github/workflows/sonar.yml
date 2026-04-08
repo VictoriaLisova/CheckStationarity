@@ -25,15 +25,19 @@ jobs:
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
       - name: Begin SonarCloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+          SONAR_ORG: ${{ secrets.SONAR_ORG }}
         run: |
           dotnet sonarscanner begin \
-            /k:"${{ secrets.SONAR_PROJECT_KEY }}" \
-            /o:"${{ secrets.SONAR_ORG }}" \
+            /k:"$SONAR_PROJECT_KEY" \
+            /o:"$SONAR_ORG" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.cs.opencover.reportsPaths="coverage-report/coverage.opencover.xml" \
             /d:sonar.scanner.scanAll=false \
-            /d:sonar.inclusions=**/*.cs
+            /d:sonar.inclusions=**/*.cs \
             /d:sonar.exclusions="**/bin/**,**/obj/**,**/node_modules/**"
 
       - name: Restore dependencies
