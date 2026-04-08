@@ -1,4 +1,4 @@
-name: SonarCloud
+name: SonarCloud Analysis
 
 on:
   push:
@@ -11,8 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -22,16 +21,29 @@ jobs:
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
 
-      - name: Begin analysis
+      - name: Begin SonarCloud analysis
         run: |
           dotnet sonarscanner begin \
             /k:"${{ secrets.SONAR_PROJECT_KEY }}" \
             /o:"${{ secrets.SONAR_ORG }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.cs.opencover.reportsPaths="coverage.opencover.xml"
+
+      - name: Restore dependencies
+        run: dotnet restore
 
       - name: Build
-        run: dotnet build
+        run: dotnet build --no-incremental
 
-      - name: End analysis
+      - name: Run tests with coverage
+        run: dotnet test --no-build --collect:"XPlat Code Coverage" --results-directory ./coverage
+
+      - name: Convert coverage to opencover
+        run: |
+          reportgenerator \
+            -reports:coverage/*/coverage.cobertura.xml \
+            -targetdir:coverage-report
+
+      - name: End SonarCloud analysis
         run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
