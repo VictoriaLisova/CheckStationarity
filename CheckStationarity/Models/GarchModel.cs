@@ -11,9 +11,9 @@ namespace CheckStationarity.Models
 {
     public class GarchModel : IModelType
     {
-        private List<double> Alpha {  get; set; }
-        private List<double> Beta {  get; set; }
-        private double W {  get; set; }
+        public List<double> Alpha {  get; set; }
+        public List<double> Beta {  get; set; }
+        public double W {  get; set; }
         public GarchModel()
         {
             Alpha = new List<double>();
